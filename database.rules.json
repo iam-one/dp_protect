@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "diagnostics": {
+      ".write": true,
+      ".read": true
+    }
+  }
+}
