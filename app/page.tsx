@@ -17,24 +17,24 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           <Link href="/guidelines">
-            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow cursor-pointer">
+            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow cursor-pointer h-full flex flex-col">
               <div className="text-4xl mb-4">📚</div>
               <h2 className="text-2xl font-bold text-gray-900 mb-3">
                 가이드라인
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 flex-grow">
                 다크패턴의 유형과 예방법을 알아보세요
               </p>
             </div>
           </Link>
 
           <Link href="/diagnostic">
-            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow cursor-pointer">
+            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow cursor-pointer h-full flex flex-col">
               <div className="text-4xl mb-4">🔍</div>
               <h2 className="text-2xl font-bold text-gray-900 mb-3">
                 진단 테스트
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 flex-grow">
                 실제 사례로 다크패턴을 진단해보세요
               </p>
             </div>
