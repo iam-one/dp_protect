@@ -1,0 +1,354 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.wrap{padding:1.5rem 0}
+.tab-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem}
+.tab{padding:7px 18px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:20px;cursor:pointer;background:transparent;color:var(--color-text-secondary);transition:all .15s}
+.tab.active{background:var(--color-background-info);color:var(--color-text-info);border-color:transparent;font-weight:500}
+.section-title{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:0.5px solid var(--color-border-tertiary)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:1.5rem}
+.pcard{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem}
+.pcard-header{display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;margin-left:auto}
+.pcard-title{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.pcard-desc{font-size:13px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:.75rem}
+.sub-list{list-style:none;display:flex;flex-direction:column;gap:6px}
+.sub-item{font-size:12px;color:var(--color-text-secondary);display:flex;align-items:flex-start;gap:6px;line-height:1.5}
+.sub-item::before{content:"·";color:var(--color-text-tertiary);flex-shrink:0;margin-top:1px}
+.highlight{color:var(--color-text-primary);font-weight:500}
+.icon-wrap{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:1.5rem}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem 1rem}
+.metric-label{font-size:11px;color:var(--color-text-tertiary);margin-bottom:4px}
+.metric-value{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.metric-sub{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.source-tag{font-size:11px;color:var(--color-text-tertiary);border:0.5px solid var(--color-border-tertiary);border-radius:4px;padding:2px 6px;display:inline-block}
+</style>
+
+<div class="wrap">
+<h2 id="sr-title" class="sr-only">금융 디지털미디어 다크패턴 유형별 정리</h2>
+
+<div class="tab-bar" id="tabs">
+  <button class="tab active" data-tab="all">전체 보기</button>
+  <button class="tab" data-tab="odo">오도형</button>
+  <button class="tab" data-tab="bang">방해형</button>
+  <button class="tab" data-tab="ab">압박형</button>
+  <button class="tab" data-tab="pyeo">편취유도형</button>
+  <button class="tab" data-tab="ftc">FTC·OECD 분류</button>
+</div>
+
+<div id="view-all" class="view">
+  <div class="summary-grid">
+    <div class="metric"><div class="metric-label">금융위원회 대분류</div><div class="metric-value">4개</div><div class="metric-sub">범주</div></div>
+    <div class="metric"><div class="metric-label">세부 유형</div><div class="metric-value">15개</div><div class="metric-sub">금융업권 특화</div></div>
+    <div class="metric"><div class="metric-label">FTC 분류</div><div class="metric-value">8개</div><div class="metric-sub">32개 세부유형</div></div>
+    <div class="metric"><div class="metric-label">OECD 분류</div><div class="metric-value">7개</div><div class="metric-sub">24개 세부유형</div></div>
+  </div>
+  <p class="section-title">금융위원회 온라인 금융상품 다크패턴 가이드라인 (2025.12)</p>
+  <div class="card-grid">
+    <div class="pcard">
+      <div class="pcard-header">
+        <div class="icon-wrap" style="background:#E6F1FB"><i class="ti ti-eye-off" style="font-size:18px;color:#185FA5" aria-hidden="true"></i></div>
+        <span class="pcard-title">오도형</span>
+        <span class="badge" style="background:#E6F1FB;color:#185FA5">5개 세부유형</span>
+      </div>
+      <p class="pcard-desc">거짓·통상적 기대와 다르게 화면·문장 등을 구성해 소비자의 착각·실수를 유도하는 행위</p>
+      <ul class="sub-list">
+        <li class="sub-item"><span>설명절차의 과도한 축약</span></li>
+        <li class="sub-item"><span>속임수 질문</span></li>
+        <li class="sub-item"><span>잘못된 계층구조</span></li>
+        <li class="sub-item"><span>특정옵션의 사전선택</span></li>
+        <li class="sub-item"><span>허위광고 및 기만적인 유인행위</span></li>
+      </ul>
+    </div>
+    <div class="pcard">
+      <div class="pcard-header">
+        <div class="icon-wrap" style="background:#FAECE7"><i class="ti ti-barrier-block" style="font-size:18px;color:#993C1D" aria-hidden="true"></i></div>
+        <span class="pcard-title">방해형</span>
+        <span class="badge" style="background:#FAECE7;color:#993C1D">4개 세부유형</span>
+      </div>
+      <p class="pcard-desc">의사결정에 필요한 정보 수집·분석에 과도한 시간·노력·비용이 들게 만들어 합리적 선택을 포기하도록 유도</p>
+      <ul class="sub-list">
+        <li class="sub-item"><span>취소·탈퇴 등의 방해</span></li>
+        <li class="sub-item"><span>숨겨진 정보</span></li>
+        <li class="sub-item"><span>가격비교 방해</span></li>
+        <li class="sub-item"><span>클릭 피로감 유발</span></li>
+      </ul>
+    </div>
+    <div class="pcard">
+      <div class="pcard-header">
+        <div class="icon-wrap" style="background:#FAEEDA"><i class="ti ti-alert-triangle" style="font-size:18px;color:#854F0B" aria-hidden="true"></i></div>
+        <span class="pcard-title">압박형</span>
+        <span class="badge" style="background:#FAEEDA;color:#854F0B">5개 세부유형</span>
+      </div>
+      <p class="pcard-desc">금융소비자에게 심리적인 압박을 가해 특정 행위를 하거나 하지 않도록 유도하는 행위</p>
+      <ul class="sub-list">
+        <li class="sub-item"><span>계약과정 중 기습적 광고</span></li>
+        <li class="sub-item"><span>반복간섭 (나깅)</span></li>
+        <li class="sub-item"><span>감정적 언어사용 (수치심 유발)</span></li>
+        <li class="sub-item"><span>감각조작 (시각·색상 조작)</span></li>
+        <li class="sub-item"><span>다른 소비자의 활동 알림</span></li>
+      </ul>
+    </div>
+    <div class="pcard">
+      <div class="pcard-header">
+        <div class="icon-wrap" style="background:#EAF3DE"><i class="ti ti-arrows-shuffle" style="font-size:18px;color:#3B6D11" aria-hidden="true"></i></div>
+        <span class="pcard-title">편취유도형</span>
+        <span class="badge" style="background:#EAF3DE;color:#3B6D11">1개 세부유형</span>
+      </div>
+      <p class="pcard-desc">소비자가 알아채기 어려운 인터페이스 조작 등을 통해 비합리적이거나 예상하지 못한 지출을 유도하는 행위</p>
+      <ul class="sub-list">
+        <li class="sub-item"><span>순차공개 가격책정 (드립 프라이싱)</span></li>
+      </ul>
+    </div>
+  </div>
+  <p style="font-size:11px;color:var(--color-text-tertiary)">출처: 금융위원회·금융감독원 「온라인 금융상품 판매 관련 다크패턴 가이드라인」 (2025.12.26)</p>
+</div>
+
+<div id="view-odo" class="view" style="display:none">
+  <p class="section-title">오도형 — 5개 세부유형</p>
+  <div class="card-grid">
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">① 설명절차의 과도한 축약</div>
+      <p class="pcard-desc">상품의 위험·조건 등 핵심 정보를 지나치게 압축하거나 생략해 소비자가 내용을 이해하지 못한 채 가입하게 유도</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: 약관 전문 없이 제목만 표시, 중요 고지를 작은 글씨로 처리</p>
+    </div>
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">② 속임수 질문</div>
+      <p class="pcard-desc">모호하거나 혼란스러운 언어(이중부정 등)를 사용해 소비자가 원치 않는 방향으로 선택을 유도</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: "마케팅 수신 거부를 원하지 않습니다" 등 이중부정 표현</p>
+    </div>
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">③ 잘못된 계층구조</div>
+      <p class="pcard-desc">시각적으로 눈에 띄는 대비를 사용하여 소비자가 특정 선택을 하도록 유도하는 강압적 설계</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: '가입하기' 버튼은 크고 선명하게, '거절하기'는 흐리게 표시</p>
+    </div>
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">④ 특정옵션의 사전선택</div>
+      <p class="pcard-desc">기업에는 유리하지만 소비자에게는 불리한 기본값을 미리 선택해 놓아 소비자가 변경하지 않으면 불리한 선택이 자동 적용</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: 자동갱신·부가서비스 기본 체크, 마케팅 동의 사전 체크</p>
+    </div>
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">⑤ 허위광고 및 기만적 유인행위</div>
+      <p class="pcard-desc">편견없는 리뷰나 독립적인 저널리즘처럼 보이도록 광고하거나 중립적 순위목록·비교사이트처럼 위장</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: 후기인 척 위장된 홍보글, 광고 표시 없는 금융상품 추천</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+    <span class="source-tag">금융위원회 가이드라인 2025</span>
+    <span class="source-tag">KCI 상사법연구 44권 2호 2025</span>
+    <span class="source-tag">모바일뱅킹 다크패턴 비교분석</span>
+  </div>
+</div>
+
+<div id="view-bang" class="view" style="display:none">
+  <p class="section-title">방해형 — 4개 세부유형</p>
+  <div class="card-grid">
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">⑥ 취소·탈퇴 등의 방해 (경로은닉)</div>
+      <p class="pcard-desc">가입은 쉽지만 해지·탈퇴·환불은 어렵게 설계. 취소 메뉴를 찾기 어렵게 숨기거나 절차를 복잡하게 만들어 포기를 유도</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: 해지 신청 시 콜센터·지점 방문만 허용, 여러 단계 확인 강요</p>
+      <div style="margin-top:.75rem;padding:.6rem .75rem;background:var(--color-background-secondary);border-radius:6px;font-size:12px;color:var(--color-text-secondary)">
+        빅데이터 분석: 상위 키워드 '조건(93,402건)', '절차(87,813건)', '전화(19,681건)' → 앱 내 해결 불가로 외부 전환
+      </div>
+    </div>
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">⑦ 숨겨진 정보</div>
+      <p class="pcard-desc">중요한 정보 또는 중요한 제품 제한 사항을 숨김. 금융상품의 핵심 조건을 공개하지 않거나 찾기 어려운 곳에 배치</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: 약관 조건 제목만 노출·본문 숨김, 위험고지를 정보 과잉 속에 매몰</p>
+    </div>
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">⑧ 가격비교 방해</div>
+      <p class="pcard-desc">상품을 묶거나 다른 측정방식을 사용하거나, 총 결제횟수 또는 전체 비용을 공개하지 않아 쉽게 비교할 수 없게 함</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: 단위당 가격·대온스당 가격 혼용, 수수료를 가상자산 소단위로 표시</p>
+    </div>
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">⑨ 클릭 피로감 유발</div>
+      <p class="pcard-desc">소비자가 유리한 옵션 선택이나 정보 수집을 위해 많은 클릭(터치)이 필요하도록 만들어 자신에게 유리한 선택을 포기하게 유도</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: 마이데이터 동의 철회 시 여러 단계 반복 클릭 요구</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+    <span class="source-tag">금융위원회 가이드라인 2025</span>
+    <span class="source-tag">빅데이터분석 HCI Korea 2026</span>
+  </div>
+</div>
+
+<div id="view-ab" class="view" style="display:none">
+  <p class="section-title">압박형 — 5개 세부유형</p>
+  <div class="card-grid">
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">⑩ 계약과정 중 기습적 광고</div>
+      <p class="pcard-desc">계약·결제 진행 중 소비자가 원치 않는 광고·추천 상품을 반복적으로 삽입하여 충동가입을 유도</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: 대출 신청 화면 중간에 보험 팝업 삽입</p>
+    </div>
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">⑪ 반복간섭 (나깅, Nagging)</div>
+      <p class="pcard-desc">소비자가 영구적으로 거부할 수 없는 요청을 반복하거나, 방해가 되는 방식으로 조치를 취할 것인지 묻는 행위</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: 푸시 알림 허용·마케팅 동의 팝업을 앱 실행마다 반복 표시</p>
+      <div style="margin-top:.75rem;padding:.6rem .75rem;background:var(--color-background-secondary);border-radius:6px;font-size:12px;color:var(--color-text-secondary)">
+        빅데이터: 자동연장형 부정 감성어 '불안(18,398건→피해·어렵다·복잡하다' 확산
+      </div>
+    </div>
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">⑫ 감정적 언어사용 (수치심 유발)</div>
+      <p class="pcard-desc">수치심을 이용해 대안을 나쁜 결정으로 프레임하거나, '현명한 투자자라면' 같은 문구로 심리적 압박을 주어 특정 선택을 유도</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: "아니요, 저는 손해를 감수하겠습니다" 형태의 거절 문구 사용</p>
+    </div>
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">⑬ 감각조작</div>
+      <p class="pcard-desc">색상·크기·위치·스타일 등 시각적 요소를 사용해 소비자의 주의를 한가지에 집중시키거나 원치 않는 방향으로 분산</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: '가입' 버튼 강조색·'취소' 회색 처리, 투자손실 공포를 이용한 상품 가입 유도</p>
+    </div>
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">⑭ 다른 소비자의 활동 알림</div>
+      <p class="pcard-desc">다른 사람들의 구매·가입 활동을 허위 또는 과장하여 표시함으로써 사회적 증거로 압박</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: "방금 OO명이 이 상품에 가입했습니다" 알림 (사실 여부 불명)</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+    <span class="source-tag">금융위원회 가이드라인 2025</span>
+    <span class="source-tag">KCI 상사법연구 2025</span>
+  </div>
+</div>
+
+<div id="view-pyeo" class="view" style="display:none">
+  <p class="section-title">편취유도형 — 1개 세부유형</p>
+  <div class="card-grid">
+    <div class="pcard">
+      <div class="pcard-title" style="margin-bottom:.5rem">⑮ 순차공개 가격책정 (드립 프라이싱)</div>
+      <p class="pcard-desc">제품 총 가격의 일부만 처음에 광고한 후 구매 프로세스 후반부에 필수요금·수수료를 부과하여 소비자가 최초 제시 가격보다 더 많은 비용을 지불하도록 유도</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary);margin-top:.5rem">예: 펀드 가입 화면에 운용보수만 표시 → 결제 직전 판매보수·환매수수료 추가 고지</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary)">예: 가상자산 수수료를 소단위(코인)로 표시해 실제 금액을 숨김 (매개통화 표기)</p>
+      <div style="margin-top:.75rem;padding:.6rem .75rem;background:var(--color-background-secondary);border-radius:6px;font-size:12px;color:var(--color-text-secondary)">
+        빅데이터 분석: 숨겨진비용형 키워드 '환불·연회비·추가요금·지안함·숨김' → 결제 직전 인지로 예산 통제감 상실이 핵심 피해
+      </div>
+    </div>
+    <div class="pcard" style="background:var(--color-background-secondary)">
+      <p class="pcard-title" style="margin-bottom:.75rem">관련 개념: 자동연장 (Subscription Trap)</p>
+      <p class="pcard-desc">무료 체험 후 고지 없이 유료 전환, 취소 시 고객센터 전화·지점 방문만 허용하거나 취소 메뉴를 찾기 어려운 곳에 배치</p>
+      <p style="font-size:12px;color:var(--color-text-tertiary);margin-top:.5rem">편취유도형과 방해형이 결합된 복합 패턴</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+    <span class="source-tag">금융위원회 가이드라인 2025</span>
+    <span class="source-tag">KCI 상사법연구 2025 — 해외사례</span>
+  </div>
+</div>
+
+<div id="view-ftc" class="view" style="display:none">
+  <p class="section-title">FTC(미국) · OECD 국제 분류 체계</p>
+  <div class="card-grid">
+    <div class="pcard">
+      <div class="pcard-header">
+        <div class="icon-wrap" style="background:#EEEDFE"><i class="ti ti-users" style="font-size:18px;color:#534AB7" aria-hidden="true"></i></div>
+        <span class="pcard-title">보증·사회적 증거</span>
+      </div>
+      <ul class="sub-list">
+        <li class="sub-item">거짓활동 메시지 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">기만적 소비자증언 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">기만적인 유명인 보증</li>
+        <li class="sub-item">사회적 관계 압박</li>
+      </ul>
+    </div>
+    <div class="pcard">
+      <div class="pcard-header">
+        <div class="icon-wrap" style="background:#FAECE7"><i class="ti ti-clock-exclamation" style="font-size:18px;color:#993C1D" aria-hidden="true"></i></div>
+        <span class="pcard-title">긴급성·회소성</span>
+      </div>
+      <ul class="sub-list">
+        <li class="sub-item">근거없는 시간 압박 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">거짓 제한 시간 메시지 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">허위 할인광고</li>
+        <li class="sub-item">허위 재고부족 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">거짓 수요 메시지 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+      </ul>
+    </div>
+    <div class="pcard">
+      <div class="pcard-header">
+        <div class="icon-wrap" style="background:#FAEEDA"><i class="ti ti-shield-off" style="font-size:18px;color:#854F0B" aria-hidden="true"></i></div>
+        <span class="pcard-title">방해</span>
+      </div>
+      <ul class="sub-list">
+        <li class="sub-item">가격비교 방해 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">계약취소 방해 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">계정삭제 불가 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+      </ul>
+    </div>
+    <div class="pcard">
+      <div class="pcard-header">
+        <div class="icon-wrap" style="background:#E1F5EE"><i class="ti ti-eye-off" style="font-size:18px;color:#0F6E56" aria-hidden="true"></i></div>
+        <span class="pcard-title">정보 비공개</span>
+      </div>
+      <ul class="sub-list">
+        <li class="sub-item">자동 구매항목 추가 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">숨겨진 비용 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">순차공개 가격책정 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">숨겨진 구독·계속 거래 강요 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">숨겨진 결제통화 정보 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+      </ul>
+    </div>
+    <div class="pcard">
+      <div class="pcard-header">
+        <div class="icon-wrap" style="background:#FBEAF0"><i class="ti ti-arrows-split" style="font-size:18px;color:#993556" aria-hidden="true"></i></div>
+        <span class="pcard-title">상호작용 간섭</span>
+      </div>
+      <ul class="sub-list">
+        <li class="sub-item">잘못된 계층구조·강압적 판매 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">위장 광고 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">유인 상술</li>
+        <li class="sub-item">원치 않는 방향으로 유인</li>
+      </ul>
+    </div>
+    <div class="pcard">
+      <div class="pcard-header">
+        <div class="icon-wrap" style="background:#EAF3DE"><i class="ti ti-robot" style="font-size:18px;color:#3B6D11" aria-hidden="true"></i></div>
+        <span class="pcard-title">강제행위</span>
+      </div>
+      <ul class="sub-list">
+        <li class="sub-item">반복적 압박 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">강제등록 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">Pay to play / 그라인딩 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">지인 스팸·사회적 다단계 강요 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+      </ul>
+    </div>
+    <div class="pcard">
+      <div class="pcard-header">
+        <div class="icon-wrap" style="background:#F1EFE8"><i class="ti ti-mood-confuzed" style="font-size:18px;color:#5F5E5A" aria-hidden="true"></i></div>
+        <span class="pcard-title">비대칭적 선택</span>
+      </div>
+      <ul class="sub-list">
+        <li class="sub-item">속임수 질문 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">수치심 유발 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">사전 선택 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">개인정보 침해 <span class="source-tag" style="margin-left:auto">OECD✓</span></li>
+        <li class="sub-item">클릭 피로감 유발</li>
+      </ul>
+    </div>
+  </div>
+  <p style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px">OECD✓ = OECD 분류에도 포함되는 유형 / 출처: FTC Bringing Dark Patterns to Light 2022, OECD Dark Commercial Patterns 2022</p>
+</div>
+
+</div>
+
+<script>
+const tabs = document.querySelectorAll('.tab');
+const views = {
+  all: document.getElementById('view-all'),
+  odo: document.getElementById('view-odo'),
+  bang: document.getElementById('view-bang'),
+  ab: document.getElementById('view-ab'),
+  pyeo: document.getElementById('view-pyeo'),
+  ftc: document.getElementById('view-ftc'),
+};
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const key = tab.dataset.tab;
+    Object.values(views).forEach(v => v.style.display = 'none');
+    views[key].style.display = 'block';
+  });
+});
+</script>

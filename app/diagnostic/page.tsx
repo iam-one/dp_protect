@@ -1,16 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ref, push } from 'firebase/database';
 import { database } from '@/lib/firebase';
-import { questions } from '@/lib/diagnosticData';
+import { questions, categories } from '@/lib/diagnosticData';
+
+type MajorType = 'odo' | 'bang' | 'ab' | 'pyeo';
 
 interface Response {
   questionId: string;
-  answer: boolean | null;
+  image: string;
   category: string;
-  type: string;
+  correctMajorType: MajorType;
+  selectedMajorType: MajorType | null;
+}
+
+const MAJOR_ORDER: MajorType[] = ['odo', 'bang', 'ab', 'pyeo'];
+
+function emptyResponses(): Response[] {
+  return questions.map((q) => ({
+    questionId: q.id,
+    image: q.image,
+    category: q.category,
+    correctMajorType: q.type,
+    selectedMajorType: null,
+  }));
 }
 
 export default function Diagnostic() {
@@ -21,38 +36,57 @@ export default function Diagnostic() {
   const [userName, setUserName] = useState('');
   const [showNameInput, setShowNameInput] = useState(false);
   const [error, setError] = useState('');
+  const [imageStatus, setImageStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
 
   useEffect(() => {
-    setResponses(
-      questions.map((q) => ({
-        questionId: q.id,
-        answer: null,
-        category: q.category,
-        type: q.type,
-      }))
-    );
+    setResponses(emptyResponses());
   }, []);
 
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + 1) / questions.length) * 100;
+  const currentResponse = responses[currentIndex];
 
-  const handleAnswer = (answer: boolean) => {
-    const newResponses = [...responses];
-    newResponses[currentIndex].answer = answer;
-    setResponses(newResponses);
+  useEffect(() => {
+    setImageStatus('loading');
+  }, [currentIndex, currentQuestion?.image]);
 
+  const selectMajorType = useCallback((major: MajorType) => {
+    setResponses((prev) => {
+      const next = [...prev];
+      if (next[currentIndex]) {
+        next[currentIndex] = { ...next[currentIndex], selectedMajorType: major };
+      }
+      return next;
+    });
+    setError('');
+  }, [currentIndex]);
+
+  const handleNext = () => {
+    if (!currentResponse?.selectedMajorType) {
+      setError('네 가지 대분류 중 하나를 선택해 주세요.');
+      return;
+    }
     if (currentIndex < questions.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+      setCurrentIndex((i) => i + 1);
     } else {
       setShowNameInput(true);
     }
   };
 
   const handlePrevious = () => {
+    if (showNameInput) {
+      setShowNameInput(false);
+      setCurrentIndex(questions.length - 1);
+      return;
+    }
     if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
+      setCurrentIndex((i) => i - 1);
     }
   };
+
+  const correctCount = responses.filter(
+    (r) => r.selectedMajorType !== null && r.selectedMajorType === r.correctMajorType
+  ).length;
 
   const handleSubmit = async () => {
     if (!userName.trim()) {
@@ -60,39 +94,34 @@ export default function Diagnostic() {
       return;
     }
 
-    if (responses.some((r) => r.answer === null)) {
-      setError('모든 질문에 답변해주세요');
+    if (responses.some((r) => r.selectedMajorType === null)) {
+      setError('모든 문항에 응답해주세요');
       return;
     }
 
     setIsSubmitting(true);
     setError('');
 
+    const wrongCount = questions.length - correctCount;
+
     try {
       const diagnosticsRef = ref(database, 'diagnostics');
-      const darkPatternCount = responses.filter((r) => r.answer === true).length;
-
-      const categoryCounts = responses.reduce(
-        (acc, r) => {
-          if (r.answer === true) {
-            acc[r.type] = (acc[r.type] || 0) + 1;
-          }
-          return acc;
-        },
-        {} as Record<string, number>
-      );
 
       await push(diagnosticsRef, {
         name: userName,
         timestamp: new Date().toISOString(),
+        mode: 'majorTypeClassification',
         responses: responses.map((r) => ({
           questionId: r.questionId,
-          answer: r.answer,
-          category: r.category,
-          type: r.type,
+          image: r.image,
+          subcategory: r.category,
+          selectedMajorType: r.selectedMajorType,
+          correctMajorType: r.correctMajorType,
+          isCorrect: r.selectedMajorType === r.correctMajorType,
         })),
-        darkPatternCount,
-        categoryCounts,
+        correctCount,
+        wrongCount,
+        accuracyPercent: Number(((correctCount / questions.length) * 100).toFixed(1)),
         totalQuestions: questions.length,
       });
 
@@ -106,24 +135,21 @@ export default function Diagnostic() {
   };
 
   if (submitted) {
-    const darkPatternCount = responses.filter((r) => r.answer === true).length;
-    const riskLevel =
-      darkPatternCount === 0
-        ? '낮음'
-        : darkPatternCount <= 5
-          ? '중간'
-          : '높음';
+    const accuracy = (correctCount / questions.length) * 100;
+    const accuracyLabel =
+      accuracy >= 80 ? '높음' : accuracy >= 50 ? '중간' : '낮음';
     const riskColor =
-      riskLevel === '낮음'
+      accuracy >= 80
         ? 'bg-green-100 border-green-500'
-        : riskLevel === '중간'
+        : accuracy >= 50
           ? 'bg-yellow-100 border-yellow-500'
           : 'bg-red-100 border-red-500';
 
-    const categoryCounts = responses.reduce(
+    const wrongByMajor = responses.reduce(
       (acc, r) => {
-        if (r.answer === true) {
-          acc[r.type] = (acc[r.type] || 0) + 1;
+        if (r.selectedMajorType !== r.correctMajorType) {
+          const k = r.correctMajorType;
+          acc[k] = (acc[k] || 0) + 1;
         }
         return acc;
       },
@@ -139,77 +165,90 @@ export default function Diagnostic() {
               진단 완료!
             </h1>
             <p className="text-gray-600 mb-8">
-              {userName}님의 다크패턴 진단 결과가 저장되었습니다.
+              {userName}님의 응답이 저장되었습니다.
             </p>
 
             <div className={`rounded-lg border-2 p-6 mb-8 ${riskColor}`}>
-              <p className="text-sm text-gray-600 mb-2">위험도 평가</p>
-              <p className="text-4xl font-bold text-gray-900">{riskLevel}</p>
+              <p className="text-sm text-gray-600 mb-2">대분류 구분 정확도</p>
+              <p className="text-4xl font-bold text-gray-900">{accuracyLabel}</p>
+              <p className="text-lg text-gray-700 mt-2">
+                {correctCount} / {questions.length} 정답 ({accuracy.toFixed(1)}%)
+              </p>
             </div>
 
             <div className="bg-gray-50 rounded-lg p-6 mb-8 text-left">
-              <h3 className="font-bold text-gray-900 mb-4 text-lg">📊 진단 결과 요약</h3>
+              <h3 className="font-bold text-gray-900 mb-4 text-lg">📊 결과 요약</h3>
               <div className="space-y-3 text-gray-700">
                 <p>
-                  총 질문: <strong>{questions.length}개</strong>
+                  총 사례: <strong>{questions.length}개</strong>
                 </p>
                 <p>
-                  다크패턴 의심: <strong>{darkPatternCount}개</strong>
+                  정답(가이드 기준 대분류와 일치): <strong>{correctCount}개</strong>
                 </p>
                 <p>
-                  감지 비율: <strong>{((darkPatternCount / questions.length) * 100).toFixed(1)}%</strong>
+                  불일치: <strong>{questions.length - correctCount}개</strong>
                 </p>
               </div>
 
-              {darkPatternCount > 0 && (
-                <div className="mt-6 p-4 bg-blue-50 rounded border-l-4 border-blue-500">
-                  <p className="text-sm text-gray-700 font-semibold mb-3">유형별 감지 현황:</p>
+              {Object.keys(wrongByMajor).length > 0 && (
+                <div className="mt-6 p-4 bg-amber-50 rounded border-l-4 border-amber-500">
+                  <p className="text-sm text-gray-700 font-semibold mb-3">
+                    정답 기준 대분류별 오답 수:
+                  </p>
                   <div className="space-y-1 text-sm">
-                    {Object.entries(categoryCounts).map(([type, count]) => (
+                    {Object.entries(wrongByMajor).map(([type, count]) => (
                       <p key={type} className="text-gray-700">
-                        • {type === 'odo' ? '오도형' : type === 'bang' ? '방해형' : type === 'ab' ? '압박형' : '편취유도형'}: <strong>{count}개</strong>
+                        •{' '}
+                        {type === 'odo'
+                          ? '오도형'
+                          : type === 'bang'
+                            ? '방해형'
+                            : type === 'ab'
+                              ? '압박형'
+                              : '편취유도형'}
+                        : <strong>{count}개</strong>
                       </p>
                     ))}
                   </div>
                 </div>
               )}
 
-              {darkPatternCount > 0 && (
-                <div className="mt-4 p-4 bg-amber-50 rounded border-l-4 border-amber-500">
-                  <p className="text-sm text-gray-700">
-                    💡 <strong>제안:</strong> 가이드라인 페이지에서 감지된 다크패턴의 세부 내용과 개선 방법을 확인해보세요.
-                  </p>
-                </div>
-              )}
+              <div className="mt-4 p-4 bg-blue-50 rounded border-l-4 border-blue-500">
+                <p className="text-sm text-gray-700">
+                  💡 <strong>안내:</strong> 각 이미지는 가이드라인의 세부 유형과 대응되며, 정답
+                  분류는 금융감독원 다크패턴 유형 체계(오도·방해·압박·편취유도)를 따릅니다.
+                </p>
+              </div>
             </div>
 
-            <div className="flex gap-4">
-              <Link href="/" className="flex-1">
-                <button className="w-full bg-gray-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-gray-600 transition-colors">
+            <div className="flex gap-4 flex-wrap">
+              <Link href="/" className="flex-1 min-w-[120px]">
+                <button
+                  type="button"
+                  className="w-full bg-gray-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-gray-600 transition-colors"
+                >
                   홈으로
                 </button>
               </Link>
-              <Link href="/guidelines" className="flex-1">
-                <button className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors">
+              <Link href="/guidelines" className="flex-1 min-w-[120px]">
+                <button
+                  type="button"
+                  className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors"
+                >
                   가이드라인 보기
                 </button>
               </Link>
               <button
+                type="button"
                 onClick={() => {
                   setCurrentIndex(0);
-                  setResponses(
-                    questions.map((q) => ({
-                      questionId: q.id,
-                      answer: null,
-                      category: q.category,
-                      type: q.type,
-                    }))
-                  );
+                  setResponses(emptyResponses());
                   setUserName('');
                   setShowNameInput(false);
                   setSubmitted(false);
+                  setError('');
                 }}
-                className="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors"
+                className="flex-1 min-w-[120px] bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors"
               >
                 다시 테스트
               </button>
@@ -226,7 +265,7 @@ export default function Diagnostic() {
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">결과 저장</h2>
           <p className="text-gray-600 mb-6">
-            진단 결과를 저장하기 위해 이름을 입력해주세요.
+            응답을 Firebase에 기록하기 위해 이름을 입력해 주세요.
           </p>
 
           <input
@@ -239,7 +278,7 @@ export default function Diagnostic() {
             placeholder="이름 입력"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 placeholder-gray-500"
             autoFocus
-            onKeyPress={(e) => {
+            onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 handleSubmit();
               }
@@ -250,12 +289,14 @@ export default function Diagnostic() {
 
           <div className="flex gap-4">
             <button
+              type="button"
               onClick={() => setShowNameInput(false)}
               className="flex-1 bg-gray-300 text-gray-900 px-4 py-2 rounded-lg font-bold hover:bg-gray-400 transition-colors"
             >
               돌아가기
             </button>
             <button
+              type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
               className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 transition-colors disabled:opacity-50"
@@ -272,13 +313,15 @@ export default function Diagnostic() {
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-3xl mx-auto">
         <Link href="/">
-          <button className="mb-8 text-indigo-600 hover:text-indigo-700 font-semibold flex items-center gap-2">
+          <button
+            type="button"
+            className="mb-8 text-indigo-600 hover:text-indigo-700 font-semibold flex items-center gap-2"
+          >
             ← 돌아가기
           </button>
         </Link>
 
         <div className="bg-white rounded-lg shadow-lg p-8">
-          {/* 진행률 */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-lg font-bold text-gray-900">진행률</h2>
@@ -294,74 +337,85 @@ export default function Diagnostic() {
             </div>
           </div>
 
-          {/* 질문 내용 */}
           <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-semibold">
-                {currentQuestion?.type === 'odo'
-                  ? '오도형'
-                  : currentQuestion?.type === 'bang'
-                    ? '방해형'
-                    : currentQuestion?.type === 'ab'
-                      ? '압박형'
-                      : '편취유도형'}
-              </span>
-            </div>
-
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
               {currentQuestion?.question}
             </h1>
 
-            {/* 이미지 영역 */}
             <div className="mb-8">
               <p className="text-sm font-semibold text-gray-600 mb-3">사례 이미지</p>
-              <div className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-400 flex flex-col items-center justify-center overflow-hidden min-h-80">
+              <div className="relative bg-gray-50 rounded-lg border-2 border-dashed border-gray-400 min-h-80 overflow-hidden flex items-center justify-center">
+                {imageStatus !== 'loaded' && (
+                  <div
+                    className={`absolute inset-0 flex flex-col items-center justify-center p-6 z-0 ${
+                      imageStatus === 'error' ? '' : 'animate-pulse'
+                    }`}
+                  >
+                    <p className="text-5xl mb-3">{imageStatus === 'error' ? '🖼️' : '⏳'}</p>
+                    <p className="text-gray-600 font-semibold">
+                      {imageStatus === 'error' ? '이미지를 불러오지 못했습니다' : '이미지 로딩 중…'}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-2">{currentQuestion?.image}</p>
+                  </div>
+                )}
                 <img
                   src={currentQuestion?.image}
-                  alt={currentQuestion?.question}
-                  className="w-full h-full object-contain p-4"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
+                  alt={`사례 ${currentIndex + 1}`}
+                  className={`relative z-10 w-full max-h-[28rem] object-contain p-4 ${
+                    imageStatus === 'loaded' ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  onLoad={() => setImageStatus('loaded')}
+                  onError={() => setImageStatus('error')}
                 />
-                <div className="text-center p-6">
-                  <p className="text-6xl mb-3">🖼️</p>
-                  <p className="text-gray-600 font-semibold text-lg">이미지 미제공</p>
-                  <p className="text-sm text-gray-500 mt-2">{currentQuestion?.id}</p>
-                </div>
               </div>
             </div>
 
-            {/* 설명 박스 */}
             <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8 rounded">
               <p className="text-gray-700">
-                <span className="font-bold">설명:</span> {currentQuestion?.description}
+                <span className="font-bold">참고 설명:</span> {currentQuestion?.description}
               </p>
             </div>
           </div>
 
-          {/* 응답 버튼 */}
+          <p className="text-sm font-bold text-gray-800 mb-3">대분류 선택 (하나만)</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+            {MAJOR_ORDER.map((key) => {
+              const cat = categories[key];
+              const selected = currentResponse?.selectedMajorType === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => selectMajorType(key)}
+                  className={`text-left rounded-xl border-2 px-4 py-4 transition-all ${
+                    selected
+                      ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-300'
+                      : 'border-gray-200 bg-white hover:border-indigo-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="text-2xl mr-2">{cat.icon}</span>
+                  <span className="font-bold text-gray-900">{cat.title}</span>
+                  <p className="text-xs text-gray-600 mt-2 leading-snug">{cat.description}</p>
+                </button>
+              );
+            })}
+          </div>
+
           <div className="flex flex-col md:flex-row gap-4">
             <button
+              type="button"
               onClick={handlePrevious}
               disabled={currentIndex === 0}
               className="flex-1 bg-gray-300 text-gray-900 px-6 py-3 rounded-lg font-bold hover:bg-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ← 이전
             </button>
-
             <button
-              onClick={() => handleAnswer(false)}
-              className="flex-1 bg-red-500 text-white px-6 py-4 rounded-lg font-bold text-lg hover:bg-red-600 transition-colors shadow-md"
+              type="button"
+              onClick={handleNext}
+              className="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-indigo-700 transition-colors shadow-md"
             >
-              아니오 (N)
-            </button>
-
-            <button
-              onClick={() => handleAnswer(true)}
-              className="flex-1 bg-yellow-500 text-white px-6 py-4 rounded-lg font-bold text-lg hover:bg-yellow-600 transition-colors shadow-md"
-            >
-              예 (Y)
+              {currentIndex >= questions.length - 1 ? '응답 완료 · 이름 입력' : '다음 →'}
             </button>
           </div>
 
@@ -371,7 +425,8 @@ export default function Diagnostic() {
         </div>
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          💡 각 질문을 신중하게 검토하고 Y/N으로 응답해주세요.
+          각 사례마다 오도형·방해형·압박형·편취유도형 중 하나를 고른 뒤「다음」을 눌러 주세요.
+          마지막 문항에서 응답을 마치면 이름을 입력하고 Firebase Realtime Database에 저장됩니다.
         </div>
       </div>
     </div>
