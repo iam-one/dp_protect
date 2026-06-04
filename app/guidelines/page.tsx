@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { categories } from '@/lib/diagnosticData';
 
@@ -12,9 +13,14 @@ interface Guideline {
   prevention: string[];
   icon: string;
   type: 'odo' | 'bang' | 'ab' | 'pyeo';
+  image: string;
 }
 
-const guidelines: Guideline[] = [
+function guidelineImage(order: number): string {
+  return `/images/dark-pattern-${String(order).padStart(2, '0')}.png`;
+}
+
+const guidelines: Guideline[] = ([
   {
     id: 'g1',
     title: '① 설명절차의 과도한 축약',
@@ -285,7 +291,10 @@ const guidelines: Guideline[] = [
     icon: '💳',
     type: 'pyeo',
   },
-];
+] as Omit<Guideline, 'image'>[]).map((guide, index) => ({
+  ...guide,
+  image: guidelineImage(index + 1),
+}));
 
 export default function Guidelines() {
   const [activeTab, setActiveTab] = useState<'all' | 'odo' | 'bang' | 'ab' | 'pyeo'>('all');
@@ -399,11 +408,19 @@ export default function Guidelines() {
                 </div>
               </div>
 
-              {/* 이미지 영역 (나중에 삽입 가능) */}
-              <div className="mt-6 p-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 text-center">
-                <p className="text-gray-500 text-sm">
-                  📸 사례 이미지 영역 (ID: {guide.id})
-                </p>
+              <div className="mt-6">
+                <p className="text-sm font-semibold text-gray-600 mb-3">사례 이미지</p>
+                <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden flex items-center justify-center min-h-64">
+                  <Image
+                    src={guide.image}
+                    alt={`${guide.title} 사례`}
+                    width={1200}
+                    height={800}
+                    unoptimized
+                    className="w-full max-h-96 object-contain p-4"
+                    loading="lazy"
+                  />
+                </div>
               </div>
             </div>
           ))}

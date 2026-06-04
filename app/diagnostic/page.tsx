@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ref, push } from 'firebase/database';
 import { database } from '@/lib/firebase';
-import { questions, categories } from '@/lib/diagnosticData';
+import { questions, categories, type DiagnosticQuestion } from '@/lib/diagnosticData';
+import { shuffleArray } from '@/lib/shuffle';
 
 type MajorType = 'odo' | 'bang' | 'ab' | 'pyeo';
 
@@ -17,9 +19,10 @@ interface Response {
 }
 
 const MAJOR_ORDER: MajorType[] = ['odo', 'bang', 'ab', 'pyeo'];
+const QUESTIONS_PER_SESSION = 10;
 
-function emptyResponses(): Response[] {
-  return questions.map((q) => ({
+function emptyResponses(ordered: DiagnosticQuestion[]): Response[] {
+  return ordered.map((q) => ({
     questionId: q.id,
     image: q.image,
     category: q.category,
@@ -28,9 +31,17 @@ function emptyResponses(): Response[] {
   }));
 }
 
+function createSession() {
+  const orderedQuestions = shuffleArray(questions).slice(0, QUESTIONS_PER_SESSION);
+  return {
+    orderedQuestions,
+    responses: emptyResponses(orderedQuestions),
+  };
+}
+
 export default function Diagnostic() {
+  const [session, setSession] = useState(createSession);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [responses, setResponses] = useState<Response[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [userName, setUserName] = useState('');
@@ -38,25 +49,19 @@ export default function Diagnostic() {
   const [error, setError] = useState('');
   const [imageStatus, setImageStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
 
-  useEffect(() => {
-    setResponses(emptyResponses());
-  }, []);
-
-  const currentQuestion = questions[currentIndex];
-  const progress = ((currentIndex + 1) / questions.length) * 100;
+  const { orderedQuestions, responses } = session;
+  const questionCount = orderedQuestions.length;
+  const currentQuestion = orderedQuestions[currentIndex];
+  const progress = questionCount > 0 ? ((currentIndex + 1) / questionCount) * 100 : 0;
   const currentResponse = responses[currentIndex];
 
-  useEffect(() => {
-    setImageStatus('loading');
-  }, [currentIndex, currentQuestion?.image]);
-
   const selectMajorType = useCallback((major: MajorType) => {
-    setResponses((prev) => {
-      const next = [...prev];
+    setSession((prev) => {
+      const next = [...prev.responses];
       if (next[currentIndex]) {
         next[currentIndex] = { ...next[currentIndex], selectedMajorType: major };
       }
-      return next;
+      return { ...prev, responses: next };
     });
     setError('');
   }, [currentIndex]);
@@ -66,7 +71,8 @@ export default function Diagnostic() {
       setError('네 가지 대분류 중 하나를 선택해 주세요.');
       return;
     }
-    if (currentIndex < questions.length - 1) {
+    if (currentIndex < questionCount - 1) {
+      setImageStatus('loading');
       setCurrentIndex((i) => i + 1);
     } else {
       setShowNameInput(true);
@@ -76,10 +82,12 @@ export default function Diagnostic() {
   const handlePrevious = () => {
     if (showNameInput) {
       setShowNameInput(false);
-      setCurrentIndex(questions.length - 1);
+      setImageStatus('loading');
+      setCurrentIndex(questionCount - 1);
       return;
     }
     if (currentIndex > 0) {
+      setImageStatus('loading');
       setCurrentIndex((i) => i - 1);
     }
   };
@@ -102,7 +110,7 @@ export default function Diagnostic() {
     setIsSubmitting(true);
     setError('');
 
-    const wrongCount = questions.length - correctCount;
+    const wrongCount = questionCount - correctCount;
 
     try {
       const diagnosticsRef = ref(database, 'diagnostics');
@@ -121,8 +129,9 @@ export default function Diagnostic() {
         })),
         correctCount,
         wrongCount,
-        accuracyPercent: Number(((correctCount / questions.length) * 100).toFixed(1)),
-        totalQuestions: questions.length,
+        accuracyPercent: Number(((correctCount / questionCount) * 100).toFixed(1)),
+        totalQuestions: questionCount,
+        questionPoolSize: questions.length,
       });
 
       setSubmitted(true);
@@ -135,7 +144,7 @@ export default function Diagnostic() {
   };
 
   if (submitted) {
-    const accuracy = (correctCount / questions.length) * 100;
+    const accuracy = questionCount > 0 ? (correctCount / questionCount) * 100 : 0;
     const accuracyLabel =
       accuracy >= 80 ? '높음' : accuracy >= 50 ? '중간' : '낮음';
     const riskColor =
@@ -172,7 +181,7 @@ export default function Diagnostic() {
               <p className="text-sm text-gray-600 mb-2">대분류 구분 정확도</p>
               <p className="text-4xl font-bold text-gray-900">{accuracyLabel}</p>
               <p className="text-lg text-gray-700 mt-2">
-                {correctCount} / {questions.length} 정답 ({accuracy.toFixed(1)}%)
+                {correctCount} / {questionCount} 정답 ({accuracy.toFixed(1)}%)
               </p>
             </div>
 
@@ -180,13 +189,13 @@ export default function Diagnostic() {
               <h3 className="font-bold text-gray-900 mb-4 text-lg">📊 결과 요약</h3>
               <div className="space-y-3 text-gray-700">
                 <p>
-                  총 사례: <strong>{questions.length}개</strong>
+                  총 사례: <strong>{questionCount}개</strong>
                 </p>
                 <p>
                   정답(가이드 기준 대분류와 일치): <strong>{correctCount}개</strong>
                 </p>
                 <p>
-                  불일치: <strong>{questions.length - correctCount}개</strong>
+                  불일치: <strong>{questionCount - correctCount}개</strong>
                 </p>
               </div>
 
@@ -238,15 +247,24 @@ export default function Diagnostic() {
                   가이드라인 보기
                 </button>
               </Link>
+              <Link href="/community" className="flex-1 min-w-[120px]">
+                <button
+                  type="button"
+                  className="w-full bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-emerald-700 transition-colors"
+                >
+                  경험 공유
+                </button>
+              </Link>
               <button
                 type="button"
                 onClick={() => {
+                  setSession(createSession());
                   setCurrentIndex(0);
-                  setResponses(emptyResponses());
                   setUserName('');
                   setShowNameInput(false);
                   setSubmitted(false);
                   setError('');
+                  setImageStatus('loading');
                 }}
                 className="flex-1 min-w-[120px] bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors"
               >
@@ -326,7 +344,7 @@ export default function Diagnostic() {
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-lg font-bold text-gray-900">진행률</h2>
               <span className="text-sm font-semibold text-indigo-600">
-                {currentIndex + 1} / {questions.length}
+                {currentIndex + 1} / {questionCount}
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
@@ -358,9 +376,12 @@ export default function Diagnostic() {
                     <p className="text-sm text-gray-500 mt-2">{currentQuestion?.image}</p>
                   </div>
                 )}
-                <img
+                <Image
                   src={currentQuestion?.image}
                   alt={`사례 ${currentIndex + 1}`}
+                  width={1200}
+                  height={800}
+                  unoptimized
                   className={`relative z-10 w-full max-h-[28rem] object-contain p-4 ${
                     imageStatus === 'loaded' ? 'opacity-100' : 'opacity-0'
                   }`}
@@ -415,7 +436,7 @@ export default function Diagnostic() {
               onClick={handleNext}
               className="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-indigo-700 transition-colors shadow-md"
             >
-              {currentIndex >= questions.length - 1 ? '응답 완료 · 이름 입력' : '다음 →'}
+              {currentIndex >= questionCount - 1 ? '응답 완료 · 이름 입력' : '다음 →'}
             </button>
           </div>
 
@@ -425,7 +446,7 @@ export default function Diagnostic() {
         </div>
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          각 사례마다 오도형·방해형·압박형·편취유도형 중 하나를 고른 뒤「다음」을 눌러 주세요.
+          15개 사례 중 무작위로 나온 10개를 보고 오도형·방해형·압박형·편취유도형 중 하나를 골라 주세요.
           마지막 문항에서 응답을 마치면 이름을 입력하고 Firebase Realtime Database에 저장됩니다.
         </div>
       </div>

@@ -1,8 +1,21 @@
 {
   "rules": {
+    ".read": false,
+    ".write": false,
     "diagnostics": {
-      ".write": true,
-      ".read": true
+      ".read": false,
+      "$diagnosticId": {
+        ".write": "newData.hasChildren(['name', 'timestamp', 'responses', 'correctCount', 'wrongCount', 'accuracyPercent', 'totalQuestions'])",
+        ".validate": "newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 30 && newData.child('timestamp').isString() && newData.child('correctCount').isNumber() && newData.child('wrongCount').isNumber() && newData.child('accuracyPercent').isNumber() && newData.child('totalQuestions').isNumber() && newData.child('totalQuestions').val() == 10"
+      }
+    },
+    "communityPosts": {
+      ".read": true,
+      ".indexOn": ["createdAt"],
+      "$postId": {
+        ".write": "newData.hasChildren(['name', 'type', 'content', 'createdAt'])",
+        ".validate": "newData.child('name').isString() && newData.child('name').val().length >= 2 && newData.child('name').val().length <= 20 && newData.child('content').isString() && newData.child('content').val().length >= 10 && newData.child('content').val().length <= 500 && newData.child('createdAt').isNumber() && (newData.child('type').val() == 'subscription' || newData.child('type').val() == 'finance' || newData.child('type').val() == 'shopping' || newData.child('type').val() == 'privacy' || newData.child('type').val() == 'other')"
+      }
     }
   }
 }

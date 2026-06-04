@@ -3,7 +3,7 @@ import Link from 'next/link';
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full text-center">
+      <div className="max-w-5xl w-full text-center">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
           다크패턴 진단 센터
         </h1>
@@ -15,7 +15,7 @@ export default function Home() {
           건강한 UX를 위한 가이드라인을 제공합니다.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <Link href="/guidelines">
             <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow cursor-pointer h-full flex flex-col">
               <div className="text-4xl mb-4">📚</div>
@@ -36,6 +36,18 @@ export default function Home() {
               </h2>
               <p className="text-gray-600 flex-grow">
                 실제 사례로 다크패턴을 진단해보세요
+              </p>
+            </div>
+          </Link>
+
+          <Link href="/community">
+            <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow cursor-pointer h-full flex flex-col">
+              <div className="text-4xl mb-4">💬</div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                경험 공유
+              </h2>
+              <p className="text-gray-600 flex-grow">
+                다크패턴 경험을 함께 기록하고 살펴보세요
               </p>
             </div>
           </Link>
